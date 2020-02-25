@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-# Copyright (c) 2017 Stephen Ibanez
+# Copyright (c) 2019 Stephen Ibanez
 # All rights reserved.
 #
 # This software was developed by Stanford University and the University of Cambridge Computer Laboratory 
@@ -61,10 +61,12 @@ sss_sdnet_tuples.clear_tuple_files()
 
 def applyPkt(pkt, ingress, time):
     pktsApplied.append(pkt)
+    sss_sdnet_tuples.sume_tuple_in['pkt_trigger'] = 1 
     sss_sdnet_tuples.sume_tuple_in['pkt_len'] = len(pkt) 
     sss_sdnet_tuples.sume_tuple_in['src_port'] = nf_port_map[ingress]
+    sss_sdnet_tuples.sume_tuple_expect['pkt_trigger'] = 1 
     sss_sdnet_tuples.sume_tuple_expect['pkt_len'] = len(pkt) 
-    sss_sdnet_tuples.sume_tuple_expect['src_port'] = nf_port_map[ingress]
+    sss_sdnet_tuples.sume_tuple_expect['src_port'] = nf_port_map[ingress] 
     pkt.time = time
     nf_applied[nf_id_map[ingress]].append(pkt)
 
@@ -99,6 +101,18 @@ def write_pcap_files():
 # generate testdata #
 #####################
 
+MAC1 = "08:00:00:00:00:01"
+MAC2 = "08:00:00:00:00:02"
+IP1 = "10.0.0.1"
+IP2 = "10.0.0.2"
+
+pktCnt = 0
+
+pkt = Ether(dst=MAC2, src=MAC1) / IP(dst=IP2, src=IP1)
+pkt = pad_pkt(pkt, 64)
+applyPkt(pkt, 'nf0', pktCnt)
+pktCnt += 1
+expPkt(pkt, 'nf1')
 
 write_pcap_files()
 
